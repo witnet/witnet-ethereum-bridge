@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "truffle/Assert.sol";
-import "../contracts/BufferLib.sol";
+import "../contracts/libs/BufferLib.sol";
 
 
 contract TestBuffer {

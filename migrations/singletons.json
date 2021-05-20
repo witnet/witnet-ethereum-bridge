@@ -1,0 +1,25 @@
+{
+  "sender": {
+    "r": "0x247000",
+    "s": "0x2470",
+    "gasprice": 1e11,
+    "gas": 400000
+  },
+  "libs": {
+    "CBOR": {
+      "gas": 1700000,
+      "salt": 0
+    },
+    "Witnet": {
+      "gas": 2400000,
+      "salt": 0,
+      "links": ["CBOR"]
+    }
+  },
+  "contracts": {
+    "WitnetRequestBoardProxy": {
+      "gas": 3000000,
+      "salt": 0
+    }
+  }
+}

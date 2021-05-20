@@ -32,7 +32,8 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@openzeppelin/contracts": "3.2.0"
+    "@openzeppelin/contracts": "3.2.0",
+    "ethereumjs-util": "^6.2.1"
   },
   "devDependencies": {
     "@openzeppelin/test-helpers": "0.5.5",

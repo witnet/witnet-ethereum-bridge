@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "truffle/Assert.sol";
-import "../contracts/Witnet.sol";
+import "../contracts/libs/Witnet.sol";
 
 
 contract WitnetTest {

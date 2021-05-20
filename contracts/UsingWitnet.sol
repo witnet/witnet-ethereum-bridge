@@ -3,9 +3,8 @@
 pragma solidity >=0.6.0 <0.7.0;
 
 import "./Request.sol";
-import "./Witnet.sol";
 import "./WitnetRequestBoardProxy.sol";
-
+import "./libs/Witnet.sol";
 
 /**
  * @title The UsingWitnet contract

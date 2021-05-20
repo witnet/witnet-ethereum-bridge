@@ -4,7 +4,7 @@ pragma solidity 0.6.12;
 pragma experimental ABIEncoderV2;
 
 import "../../contracts/Request.sol";
-import "../../contracts/Witnet.sol";
+import "../../contracts/libs/Witnet.sol";
 import "../../contracts/UsingWitnet.sol";
 
 

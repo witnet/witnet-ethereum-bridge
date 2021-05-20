@@ -10,3 +10,5 @@ contracts/flattened
 
 yarn.lock
 package-lock.json
+
+.old

@@ -1,16 +1,13 @@
 {
-  "goerli" : {
-    "CBOR": "0x4ADd24Cb572b8951808f81b8235ac302D9910c63",
-    "Migrations": "0xaC43baB88216527560E0A2AC852Ca32130312370",
-    "Witnet": "0x80Dc9287085ea7C103c3EAe117Ad9A1CcCd02C46",
-    "WitnetRequestBoard": "0x156a1E0703fA7e9765949d40c6349501a1e9FB02",
-    "WitnetRequestBoardProxy": "0xd58615B1e77E6eD3a583CB12A7D0016cad7A8438"
+  "networks": {
   },
-  "rinkeby" : {
-    "CBOR": "0xFBB631ec0F7b423d23c649bd5733bc450Ab5b366",
-    "Migrations": "0xa5EBf3DFa0284402Fb640ff6ffaf5102C3AE6959",
-    "Witnet": "0x47689bc2d27770Ab3a358C1C2C9c998028ea0823",
-    "WitnetRequestBoard": "0x90d08bF4e89C9D1fFb69cb4F783c38F6493ae74a",
-    "WitnetRequestBoardProxy": "0xE1EC13d1521B98ee7b826751048806E85DC1F1bA"
+  "singletons": {
+    "libraries": {
+      "CBOR": "0xd75b64FEb11193F9b77BCC3Ec904c89Bd0b9E421",
+      "Witnet": "0xC72d494a355a58A4FFb31434073118c7CB0651CD"
+    },
+    "contracts": {
+      "WitnetRequestBoardProxy": "0x1F1a458dAF4162CC07BDaC1D25F459feCAab6C20"
+    }
   }
 }

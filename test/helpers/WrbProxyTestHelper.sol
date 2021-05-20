@@ -13,7 +13,9 @@ import "../../contracts/WitnetRequestBoardProxy.sol";
  */
 contract WrbProxyTestHelper is WitnetRequestBoardProxy {
 
-  constructor (address _witnetRequestBoardAddress) public WitnetRequestBoardProxy(_witnetRequestBoardAddress) {}
+  constructor (address _witnetRequestBoardAddress) public WitnetRequestBoardProxy(/*_witnetRequestBoardAddress*/) {
+    upgradeWitnetRequestBoard(_witnetRequestBoardAddress);
+  }
 
   function checkLastId(uint256 _id) external view returns(bool) {
     return _id == currentLastId;

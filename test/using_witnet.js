@@ -7,8 +7,9 @@ const Witnet = artifacts.require("Witnet")
 const truffleAssert = require("truffle-assertions")
 
 const sha = require("js-sha256")
+const BN = web3.utils.BN
 
-contract("UsingWitnet", accounts => {
+contract("UsingWitnet", ([owner, requestor]) => {
   describe("UsingWitnet \"happy path\" test case. " +
     "This covers pretty much all the life cycle of a Witnet request.", () => {
     const requestHex = "0x01"
@@ -19,15 +20,17 @@ contract("UsingWitnet", accounts => {
     const reward = web3.utils.toWei("1", "ether")
 
     let witnet, clientContract, wrb, wrbProxy, request, requestId, result
-    let lastAccount0Balance
+    let ownerBalance, requestorBalance
 
     before(async () => {
       witnet = await Witnet.deployed()
-      wrb = await WRB.new([accounts[0]])
-      wrbProxy = await WRBProxy.new(wrb.address)
+      wrb = await WRB.new([owner])
+      wrbProxy = await WRBProxy.new()
+      await wrbProxy.upgradeWitnetRequestBoard(wrb.address)
       await UsingWitnetTestHelper.link(Witnet, witnet.address)
       clientContract = await UsingWitnetTestHelper.new(wrbProxy.address)
-      lastAccount0Balance = await web3.eth.getBalance(accounts[0])
+      ownerBalance = await web3.eth.getBalance(owner)
+      requestorBalance = await web3.eth.getBalance(requestor)
     })
 
     it("should create a Witnet request", async () => {
@@ -45,7 +48,7 @@ contract("UsingWitnet", accounts => {
       requestId = await returnData(clientContract._witnetPostRequest(
         request.address,
         {
-          from: accounts[1],
+          from: requestor,
           value: reward,
         }
       ))
@@ -66,10 +69,10 @@ contract("UsingWitnet", accounts => {
       assert.equal(drReward, reward)
     })
 
-    it("requester balance should decrease", async () => {
-      const afterBalance = await web3.eth.getBalance(accounts[0])
-      assert(afterBalance < lastAccount0Balance)
-      lastAccount0Balance = afterBalance
+    it("requestor balance should decrease after post", async () => {
+      const afterBalance = await web3.eth.getBalance(requestor)
+      assert(new BN(afterBalance).lt(new BN(requestorBalance)))
+      requestorBalance = afterBalance
     })
 
     it("client contract balance should remain stable", async () => {
@@ -84,7 +87,7 @@ contract("UsingWitnet", accounts => {
 
     it("should upgrade the rewards of an existing Witnet request", async () => {
       await returnData(clientContract._witnetUpgradeRequest(requestId, {
-        from: accounts[1],
+        from: requestor,
         value: reward,
       }))
     })
@@ -96,10 +99,10 @@ contract("UsingWitnet", accounts => {
       assert.equal(drReward, reward * 2)
     })
 
-    it("requester balance should decrease after rewards upgrade", async () => {
-      const afterBalance = await web3.eth.getBalance(accounts[1])
-      assert(afterBalance < lastAccount0Balance - reward)
-      lastAccount0Balance = afterBalance
+    it("requestor balance should decrease after rewards upgrade", async () => {
+      const afterBalance = await web3.eth.getBalance(requestor)
+      assert(new BN(afterBalance).lt(new BN(requestorBalance).sub(new BN(reward))))
+      requestorBalance = afterBalance
     })
 
     it("client contract balance should remain stable after rewards upgrade", async () => {
@@ -114,10 +117,16 @@ contract("UsingWitnet", accounts => {
 
     it("should post the result of the request into the WRB", async () => {
       await returnData(wrb.reportResult(requestId, drHash, resultHex, {
-        from: accounts[0],
+        from: owner,
       }))
       const requestInfo = await wrb.requests(requestId)
       assert.equal(requestInfo.result, resultHex)
+    })
+
+    it("owner balance should increase after report result", async () => {
+      const afterBalance = await web3.eth.getBalance(owner)
+      assert(new BN(afterBalance).gt(new BN(ownerBalance)))
+      ownerBalance = afterBalance
     })
 
     it("should check if the request is resolved", async () => {
@@ -125,7 +134,7 @@ contract("UsingWitnet", accounts => {
     })
 
     it("should pull the result from the WRB back into the client contract", async () => {
-      await clientContract._witnetReadResult(requestId, { from: accounts[0] })
+      await clientContract._witnetReadResult(requestId)
       result = await clientContract.result()
       assert.equal(result.success, true)
       assert.equal(result.cborValue.buffer.data, resultHex)
@@ -148,7 +157,7 @@ contract("UsingWitnet", accounts => {
 
     before(async () => {
       witnet = await Witnet.deployed()
-      wrb = await WRB.new([accounts[0]])
+      wrb = await WRB.new([owner])
       await UsingWitnetTestHelper.link(Witnet, witnet.address)
       clientContract = await UsingWitnetTestHelper.new(wrb.address)
     })
@@ -168,7 +177,7 @@ contract("UsingWitnet", accounts => {
       requestId = await returnData(clientContract._witnetPostRequest(
         request.address,
         {
-          from: accounts[1],
+          from: requestor,
           value: reward,
         }
       ))
@@ -181,20 +190,20 @@ contract("UsingWitnet", accounts => {
 
     it("should report the result in the WRB", async () => {
       await returnData(wrb.reportResult(requestId, drHash, resultHex, {
-        from: accounts[0],
+        from: owner,
       }))
       const requestinfo = await wrb.requests(requestId)
       assert.equal(requestinfo.result, resultHex)
     })
 
     it("should pull the result from the WRB back to the client contract", async () => {
-      await clientContract._witnetReadResult(requestId, { from: accounts[1] })
+      await clientContract._witnetReadResult(requestId)
       result = await clientContract.result()
       assert.equal(result.cborValue.buffer.data, resultHex)
     })
 
     it("should detect the result is false", async () => {
-      await clientContract._witnetReadResult(requestId, { from: accounts[1] })
+      await clientContract._witnetReadResult(requestId)
       result = await clientContract.result()
       assert.equal(result.success, false)
     })
@@ -204,7 +213,7 @@ contract("UsingWitnet", accounts => {
       const estimatedReward = await clientContract._witnetEstimateGasCost.call(gasPrice)
       await truffleAssert.passes(
         clientContract._witnetPostRequest(request.address, {
-          from: accounts[1],
+          from: requestor,
           value: estimatedReward,
           gasPrice: gasPrice,
         }),
