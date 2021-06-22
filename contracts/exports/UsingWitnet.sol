@@ -4,8 +4,8 @@ pragma solidity >=0.7.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
 import "./Request.sol";
-import "./Witnet.sol";
-import "./WitnetRequestBoardInterface.sol";
+import "../libs/Witnet.sol";
+import "../exports/WitnetRequestBoardInterface.sol";
 
 
 /**

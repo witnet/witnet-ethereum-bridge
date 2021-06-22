@@ -3,8 +3,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 
-import "./WitnetRequestBoardInterface.sol";
-
+import "./exports/WitnetRequestBoardInterface.sol";
 
 /**
  * @title Witnet Request Board Proxy

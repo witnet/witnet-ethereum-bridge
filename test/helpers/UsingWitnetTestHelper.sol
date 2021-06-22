@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.4;
 
-import "../../contracts/Request.sol";
-import "../../contracts/Witnet.sol";
-import "../../contracts/UsingWitnet.sol";
+import "../../contracts/exports/Request.sol";
+import "../../contracts/libs/Witnet.sol";
+import "../../contracts/exports/UsingWitnet.sol";
 
 
 /**
