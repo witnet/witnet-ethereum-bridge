@@ -1,7 +1,7 @@
 const WRB = artifacts.require("WitnetRequestBoard")
 const WRBProxy = artifacts.require("WitnetRequestBoardProxy")
 const UsingWitnetTestHelper = artifacts.require("UsingWitnetTestHelper")
-const Request = artifacts.require("Request")
+const Request = artifacts.require("WitnetRequest")
 const Witnet = artifacts.require("Witnet")
 
 const truffleAssert = require("truffle-assertions")

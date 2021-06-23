@@ -3,8 +3,9 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 
-import "./WitnetRequestBoardInterface.sol";
-import "./Request.sol";
+import "../data/WitnetBoardData.sol";
+import "../exports/WitnetBoard.sol";
+import "../exports/WitnetRequest.sol";
 
 /**
  * @title Witnet Requests Board mocked
@@ -13,7 +14,7 @@ import "./Request.sol";
  * The result of the requests will be posted back to this contract by the bridge nodes too.
  * @author Witnet Foundation
  */
-contract WitnetRequestBoard is WitnetRequestBoardInterface {
+contract WitnetRequestBoard is WitnetBoard, WitnetBoardData {
     // TODO: update max report result gas value
     uint256 public constant ESTIMATED_REPORT_RESULT_GAS = 102496;
 
@@ -51,7 +52,7 @@ contract WitnetRequestBoard is WitnetRequestBoardInterface {
     modifier validDrOutputHash(uint256 _id) {
         require(
             requests[_id].drOutputHash ==
-                computeDrOutputHash(Request(requests[_id].requestAddress).bytecode()),
+                computeDrOutputHash(WitnetRequest(requests[_id].requestAddress).bytecode()),
             "The dr has been manipulated and the bytecode has changed"
         );
         _;
@@ -96,7 +97,7 @@ contract WitnetRequestBoard is WitnetRequestBoardInterface {
         DataRequest memory request;
         request.requestAddress = _requestAddress;
         request.reward = msg.value;
-        Request requestContract = Request(request.requestAddress);
+        WitnetRequest requestContract = WitnetRequest(request.requestAddress);
         request.drOutputHash = computeDrOutputHash(requestContract.bytecode());
         request.gasPrice = tx.gasprice;
         // Push the new request into the contract state
@@ -138,10 +139,16 @@ contract WitnetRequestBoard is WitnetRequestBoardInterface {
     /// @param _drTxHash The unique hash of the request.
     /// @param _result The result itself as bytes.
     function reportResult(
-        uint256 _id,
-        uint256 _drTxHash,
-        bytes calldata _result
-    ) external isAuthorized() validId(_id) resultNotIncluded(_id) {
+            uint256 _id,
+            uint256 _drTxHash,
+            bytes calldata _result
+        )
+        external
+        override
+        isAuthorized()
+        validId(_id)
+        resultNotIncluded(_id)
+    {
         require(_drTxHash != 0, "Data request transaction cannot be zero");
         // Ensures the result byes do not have zero length
         // This would not be a valid encoding with CBOR and could trigger a reentrancy attack
@@ -159,12 +166,13 @@ contract WitnetRequestBoard is WitnetRequestBoardInterface {
     /// @return The result of the data request as bytes.
     function readDataRequest(uint256 _id)
         external
+        override
         view
         validId(_id)
         validDrOutputHash(_id)
         returns (bytes memory)
     {
-        Request requestContract = Request(requests[_id].requestAddress);
+        WitnetRequest requestContract = WitnetRequest(requests[_id].requestAddress);
         return requestContract.bytecode();
     }
 
@@ -188,6 +196,7 @@ contract WitnetRequestBoard is WitnetRequestBoardInterface {
     function readGasPrice(uint256 _id)
         external
         view
+        override
         validId(_id)
         returns (uint256)
     {
@@ -209,7 +218,7 @@ contract WitnetRequestBoard is WitnetRequestBoardInterface {
 
     /// @dev Returns the number of data requests in the WRB.
     /// @return the number of data requests in the WRB.
-    function requestsCount() external view returns (uint256) {
+    function requestsCount() external override view returns (uint256) {
         return requests.length;
     }
 
@@ -218,7 +227,6 @@ contract WitnetRequestBoard is WitnetRequestBoardInterface {
     function isUpgradable(address _address)
         external
         view
-        override
         returns (bool)
     {
         if (_address == owner) {

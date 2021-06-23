@@ -2,9 +2,9 @@
 
 pragma solidity 0.8.4;
 
-import "../../contracts/Request.sol";
-import "../../contracts/Witnet.sol";
-import "../../contracts/UsingWitnet.sol";
+import "../../contracts/exports/WitnetRequest.sol";
+import "../../contracts/libs/Witnet.sol";
+import "../../contracts/exports/UsingWitnet.sol";
 
 
 /**
@@ -20,7 +20,7 @@ contract UsingWitnetTestHelper is UsingWitnet {
 
   constructor (address _wrbAddress) UsingWitnet(_wrbAddress) { }
 
-  function _witnetPostRequest(Request _request) external payable returns(uint256 id) {
+  function _witnetPostRequest(WitnetRequest _request) external payable returns(uint256 id) {
     return witnetPostRequest(_request);
   }
 
@@ -43,7 +43,7 @@ contract UsingWitnetTestHelper is UsingWitnet {
 
   function _witnetCheckRequestResolved(uint256 _id) external view returns (bool) {
   // If the result of the data request in Witnet is not the default, then it means that it has been reported as resolved.
-  return wrb.readDrTxHash(_id) != 0;
+  return IWitnetQuery(witnet).readDrTxHash(_id) != 0;
   }
 
 }

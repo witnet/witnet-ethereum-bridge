@@ -3,7 +3,7 @@
 pragma solidity 0.8.4;
 
 import "truffle/Assert.sol";
-import "../contracts/CBOR.sol";
+import "../contracts/libs/CBOR.sol";
 
 
 contract TestCBOR {

@@ -2,7 +2,8 @@
 
 pragma solidity 0.8.4;
 
-import "../../contracts/WitnetRequestBoardInterface.sol";
+// import "../../contracts/data/WitnetBoardData.sol";
+import "../../contracts/exports/IWitnetRequestor.sol";
 
 
 /**
@@ -13,7 +14,7 @@ import "../../contracts/WitnetRequestBoardInterface.sol";
   * The contract has been created for testing purposes
  * @author Witnet Foundation
  */
-contract WitnetRequestBoardTestHelper is WitnetRequestBoardInterface {
+contract WitnetRequestBoardTestHelper is IWitnetRequestor {
 
   struct DataRequest {
     address requestAddress;
@@ -77,21 +78,21 @@ contract WitnetRequestBoardTestHelper is WitnetRequestBoardInterface {
   /// @dev Retrieves hash of the data request transaction in Witnet
   /// @param _id The unique identifier of the data request.
   /// @return The hash of the DataRequest transaction in Witnet
-  function readDrTxHash (uint256 _id) external view override returns(uint256) {
+  function readDrTxHash (uint256 _id) external view returns(uint256) {
     return requests[_id].drTxHash;
   }
 
   /// @dev Retrieves the result (if already available) of one data request from the WRB.
   /// @param _id The unique identifier of the data request.
   /// @return The result of the DR
-  function readResult (uint256 _id) external view override returns(bytes memory) {
+  function readResult (uint256 _id) external view returns(bytes memory) {
     return requests[_id].result;
   }
 
   /// @dev Verifies if the contract is upgradable
   /// @return true if the contract upgradable
   /* solhint-disable-next-line no-unused-vars*/
-  function isUpgradable(address) external view override returns(bool) {
+  function isUpgradable(address) external view returns(bool) {
     return upgradable;
   }
 

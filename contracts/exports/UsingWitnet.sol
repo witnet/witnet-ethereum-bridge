@@ -3,9 +3,10 @@
 pragma solidity >=0.7.0 <0.9.0;
 pragma experimental ABIEncoderV2;
 
-import "./Request.sol";
-import "./Witnet.sol";
-import "./WitnetRequestBoardInterface.sol";
+import "./WitnetRequest.sol";
+import "../libs/Witnet.sol";
+import "../exports/IWitnetQuery.sol";
+import "../exports/IWitnetRequestor.sol";
 
 
 /**
@@ -15,14 +16,14 @@ import "./WitnetRequestBoardInterface.sol";
 abstract contract UsingWitnet {
   using Witnet for Witnet.Result;
 
-  WitnetRequestBoardInterface internal immutable wrb;
+  address internal immutable witnet;
 
  /**
   * @notice Include an address to specify the WitnetRequestBoard.
   * @param _wrb WitnetRequestBoard address.
   */
   constructor(address _wrb) {
-    wrb = WitnetRequestBoardInterface(_wrb);
+    witnet = _wrb;
   }
 
   // Provides a convenient way for client contracts extending this to block the execution of the main logic of the
@@ -38,8 +39,8 @@ abstract contract UsingWitnet {
   * @param _request An instance of the `Request` contract.
   * @return Sequencial identifier for the request included in the WitnetRequestBoard.
   */
-  function witnetPostRequest(Request _request) internal returns (uint256) {
-    return wrb.postDataRequest{value: msg.value}(address(_request));
+  function witnetPostRequest(WitnetRequest _request) internal returns (uint256) {
+    return IWitnetRequestor(witnet).postDataRequest{value: msg.value}(address(_request));
   }
 
  /**
@@ -51,7 +52,7 @@ abstract contract UsingWitnet {
   */
   function witnetCheckRequestResolved(uint256 _id) internal view returns (bool) {
     // If the result of the data request in Witnet is not the default, then it means that it has been reported as resolved.
-    return wrb.readDrTxHash(_id) != 0;
+    return IWitnetQuery(witnet).readDrTxHash(_id) != 0;
   }
 
  /**
@@ -60,7 +61,7 @@ abstract contract UsingWitnet {
   * @param _id The unique identifier of a request that has been previously sent to the WitnetRequestBoard.
   */
   function witnetUpgradeRequest(uint256 _id) internal {
-    wrb.upgradeDataRequest{value: msg.value}(_id);
+    IWitnetRequestor(witnet).upgradeDataRequest{value: msg.value}(_id);
   }
 
  /**
@@ -70,7 +71,7 @@ abstract contract UsingWitnet {
   * @return The result of the request as an instance of `Result`.
   */
   function witnetReadResult(uint256 _id) internal view returns (Witnet.Result memory) {
-    return Witnet.resultFromCborBytes(wrb.readResult(_id));
+    return Witnet.resultFromCborBytes(IWitnetQuery(witnet).readResult(_id));
   }
 
  /**
@@ -80,6 +81,6 @@ abstract contract UsingWitnet {
   * @return The reward to be included for the given gas price.
   */
   function witnetEstimateGasCost(uint256 _gasPrice) internal view returns (uint256) {
-    return wrb.estimateGasCost(_gasPrice);
+    return IWitnetRequestor(witnet).estimateGasCost(_gasPrice);
   }
 }

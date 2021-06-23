@@ -3,7 +3,7 @@
 pragma solidity 0.8.4;
 
 import "truffle/Assert.sol";
-import "../contracts/BufferLib.sol";
+import "../contracts/libs/BufferLib.sol";
 
 
 contract TestBuffer {

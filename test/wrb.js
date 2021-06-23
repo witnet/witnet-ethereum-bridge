@@ -10,7 +10,7 @@ const { expect } = require("chai")
 // Contracts
 const WRB = artifacts.require("WitnetRequestBoard")
 
-const Request = artifacts.require("Request")
+const Request = artifacts.require("WitnetRequest")
 const RequestTestHelper = artifacts.require("RequestTestHelper")
 
 // Request definition
@@ -208,7 +208,7 @@ contract("WitnetRequestBoard", ([
     })
     it("fails if anyone upgrades DR with new gas price that decreases reward below gas limit", async () => {
       // Report result reward < ESTIMATED_REPORT_RESULT_GAS * newGasPrice
-      const newGasPrice = ether("1")
+      const newGasPrice = ether("0.01")
       await expectRevert(
         this.WitnetRequestBoard.upgradeDataRequest(requestId, {
           from: requestor,

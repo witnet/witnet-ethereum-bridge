@@ -3,8 +3,7 @@
 pragma solidity >=0.7.0 <0.9.0;
 
 
-import "./WitnetRequestBoardInterface.sol";
-
+import "./impls/WitnetRequestBoard.sol";
 
 /**
  * @title Witnet Request Board Proxy
@@ -22,7 +21,7 @@ contract WitnetRequestBoardProxy {
   }
 
   // Witnet Request Board contract that is currently being used
-  WitnetRequestBoardInterface public currentWitnetRequestBoard;
+  WitnetRequestBoard public currentWitnetRequestBoard;
 
   // Last id of the WRB controller
   uint256 internal currentLastId;
@@ -42,7 +41,7 @@ contract WitnetRequestBoardProxy {
   constructor(address _witnetRequestBoardAddress) {
     // Initialize the first epoch pointing to the first controller
     controllers.push(ControllerInfo({controllerAddress: _witnetRequestBoardAddress, lastId: 0}));
-    currentWitnetRequestBoard = WitnetRequestBoardInterface(_witnetRequestBoardAddress);
+    currentWitnetRequestBoard = WitnetRequestBoard(_witnetRequestBoardAddress);
   }
 
   /// @dev Posts a data request into the WRB in expectation that it will be relayed and resolved in Witnet with a total reward that equals to msg.value.
@@ -76,7 +75,7 @@ contract WitnetRequestBoardProxy {
     // Get the address and the offset of the corresponding to id
     (address wrbAddress, uint256 offsetWrb) = getController(_id);
     // Return the result of the DR readed in the corresponding Controller with its own id
-    uint256 drTxHash = WitnetRequestBoardInterface(wrbAddress).readDrTxHash(_id - offsetWrb);
+    uint256 drTxHash = IWitnetQuery(wrbAddress).readDrTxHash(_id - offsetWrb);
     return drTxHash;
   }
 
@@ -89,8 +88,7 @@ contract WitnetRequestBoardProxy {
     uint256 offSetWrb;
     (wrbAddress, offSetWrb) = getController(_id);
     // Return the result of the DR in the corresponding Controller with its own id
-    WitnetRequestBoardInterface wrbWithResult;
-    wrbWithResult = WitnetRequestBoardInterface(wrbAddress);
+    IWitnetQuery wrbWithResult = IWitnetQuery(wrbAddress);
     return wrbWithResult.readResult(_id - offSetWrb);
   }
 
@@ -109,7 +107,7 @@ contract WitnetRequestBoardProxy {
     // Map the currentLastId to the corresponding witnetRequestBoardAddress and add it to controllers
     controllers.push(ControllerInfo({controllerAddress: _newAddress, lastId: currentLastId}));
     // Upgrade the WRB
-    currentWitnetRequestBoard = WitnetRequestBoardInterface(_newAddress);
+    currentWitnetRequestBoard = WitnetRequestBoard(_newAddress);
   }
 
   /// @notice Gets the controller from an Id.

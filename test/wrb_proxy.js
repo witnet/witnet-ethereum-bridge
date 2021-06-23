@@ -1,6 +1,6 @@
 const truffleAssert = require("truffle-assertions")
 const WitnetRequestBoard = artifacts.require("WitnetRequestBoardTestHelper")
-const RequestContract = artifacts.require("Request")
+const RequestContract = artifacts.require("WitnetRequest")
 const WrbProxyHelper = artifacts.require("WrbProxyTestHelper")
 
 contract("Witnet Requests Board Proxy", accounts => {
