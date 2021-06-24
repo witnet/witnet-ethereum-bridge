@@ -2,8 +2,6 @@
 
 pragma solidity >=0.7.0 <0.9.0;
 
-
-
 /**
  * @title Witnet Requests Board Interface
  * @notice Interface of a Witnet Request Board (WRB)
@@ -15,10 +13,10 @@ pragma solidity >=0.7.0 <0.9.0;
 interface WitnetRequestBoardInterface {
 
   // Event emitted when a new DR is posted
-  event PostedRequest(uint256 _id);
+  event PostedRequest(uint256 id);
 
   // Event emitted when a result is reported
-  event PostedResult(uint256 _id);
+  event PostedResult(uint256 id);
 
   /// @dev Posts a data request into the WRB in expectation that it will be relayed and resolved in Witnet with a total reward that equals to msg.value.
   /// @param _requestAddress The request contract address which includes the request bytecode.
@@ -38,10 +36,6 @@ interface WitnetRequestBoardInterface {
   /// @param _id The unique identifier of the data request.
   /// @return The result of the DR
   function readResult (uint256 _id) external view returns(bytes memory);
-
-  /// @notice Verifies if the Witnet Request Board can be upgraded.
-  /// @return true if contract is upgradable.
-  function isUpgradable(address _address) external view returns(bool);
 
   /// @dev Estimate the amount of reward we need to insert for a given gas price.
   /// @param _gasPrice The gas price for which we need to calculate the rewards.
