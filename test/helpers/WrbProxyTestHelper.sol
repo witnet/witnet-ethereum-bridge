@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.4;
+pragma solidity 0.8.5;
 
-import "../../contracts/WitnetRequestBoardProxy.sol";
+import "../../contracts/WitnetProxy.sol";
+import "../../contracts/exports/WitnetBoard.sol";
 
 
 /**
@@ -11,23 +12,16 @@ import "../../contracts/WitnetRequestBoardProxy.sol";
  *  Raise the visibility modifier of WitnetRequestBoardProxy contract functions for testing purposes
  * @author Witnet Foundation
  */
-contract WrbProxyTestHelper is WitnetRequestBoardProxy {
+contract WrbProxyTestHelper is WitnetProxy {
 
-  constructor (address _witnetRequestBoardAddress) WitnetRequestBoardProxy(_witnetRequestBoardAddress) {}
-
-  function checkLastId(uint256 _id) external view returns(bool) {
-    return _id == currentLastId;
-  }
-
+  constructor () {}
   function getWrbAddress() external view returns(address) {
-    return address(currentWitnetRequestBoard);
+    return address(delegate);
   }
-
-  function getControllerAddress(uint256 _id) external view returns(address) {
-    address wrb;
-    uint256 offset;
-    (wrb, offset) = getController(_id);
-    return wrb;
+  
+  function upgradeWitnetRequestBoard(address _newWrb) external {
+    address[] memory _reporters = new address[](1);
+    _reporters[0] = msg.sender;
+    upgrade(_newWrb, abi.encode(_reporters));
   }
-
 }

@@ -7,6 +7,8 @@ contracts/flattened
 .env
 .idea
 .vscode
+.old
+*.old
 
 yarn.lock
 package-lock.json

@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.4;
+pragma solidity 0.8.5;
 
-import "../../contracts/Request.sol";
-import "../../contracts/Witnet.sol";
-import "../../contracts/UsingWitnet.sol";
-
+import "../../contracts/exports/WitnetRequest.sol";
+import "../../contracts/exports/UsingWitnet.sol";
+import "../../contracts/libs/Witnet.sol";
 
 /**
  * @title Test Helper for the UsingWitnet contract
@@ -14,13 +13,13 @@ import "../../contracts/UsingWitnet.sol";
  * @author Witnet Foundation
  */
 contract UsingWitnetTestHelper is UsingWitnet {
-  using Witnet for Witnet.Result;
+  using Witnet for WitnetTypes.Result;
 
-  Witnet.Result public result;
+  WitnetTypes.Result public result;
 
   constructor (address _wrbAddress) UsingWitnet(_wrbAddress) { }
 
-  function _witnetPostRequest(Request _request) external payable returns(uint256 id) {
+  function _witnetPostRequest(WitnetRequest _request) external payable returns(uint256 id) {
     return witnetPostRequest(_request);
   }
 
@@ -28,12 +27,12 @@ contract UsingWitnetTestHelper is UsingWitnet {
     witnetUpgradeRequest(_id);
   }
 
-  function _witnetReadResult(uint256 _requestId) external returns(Witnet.Result memory) {
+  function _witnetReadResult(uint256 _requestId) external returns (WitnetTypes.Result memory) {
     result = witnetReadResult(_requestId);
     return result;
   }
 
-  function _witnetEstimateGasCost(uint256 _gasPrice) external returns(uint256) {
+  function _witnetEstimateGasCost(uint256 _gasPrice) external view returns(uint256) {
     return witnetEstimateGasCost(_gasPrice);
   }
 
@@ -42,8 +41,7 @@ contract UsingWitnetTestHelper is UsingWitnet {
   }
 
   function _witnetCheckRequestResolved(uint256 _id) external view returns (bool) {
-  // If the result of the data request in Witnet is not the default, then it means that it has been reported as resolved.
-  return wrb.readDrTxHash(_id) != 0;
+    // If the result of the data request in Witnet is not the default, then it means that it has been reported as resolved.
+    return WitnetRequestBoardInterface(witnet).readDrTxHash(_id) != 0;
   }
-
 }

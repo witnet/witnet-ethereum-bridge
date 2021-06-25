@@ -9,8 +9,7 @@ const { expect } = require("chai")
 
 // Contracts
 const WRB = artifacts.require("WitnetRequestBoard")
-
-const Request = artifacts.require("Request")
+const Request = artifacts.require("WitnetRequest")
 const RequestTestHelper = artifacts.require("RequestTestHelper")
 
 // Request definition
@@ -31,9 +30,8 @@ contract("WitnetRequestBoard", ([
   other,
 ]) => {
   beforeEach(async () => {
-    this.WitnetRequestBoard = await WRB.new([owner, committeeMember], {
-      from: owner,
-    })
+    this.WitnetRequestBoard = await WRB.new({ from: owner })
+    await this.WitnetRequestBoard.setReporters([owner, committeeMember], { from: owner })
     this.Request = await Request.new(requestHex, { from: requestor })
   })
 
@@ -55,16 +53,17 @@ contract("WitnetRequestBoard", ([
         {
           from: requestor,
           value: ether("1"),
-        })
+        }
+      )
 
       // Check `PostedRequest` event
       expectEvent(
         postDataRequestTx,
         "PostedRequest",
         {
-          _id: requestId,
+          id: requestId,
         })
-      expect(postDataRequestTx.logs[0].args._id, "match data request id").to.be.bignumber.equal(requestId)
+      expect(postDataRequestTx.logs[0].args.id, "match data request id").to.be.bignumber.equal(requestId)
 
       // Check contract balance (increased by reward)
       const contractFinalBalance = await contractBalanceTracker.get()
@@ -95,18 +94,18 @@ contract("WitnetRequestBoard", ([
         postDataRequestTx1,
         "PostedRequest",
         {
-          _id: requestId,
+          id: requestId,
         })
-      expect(postDataRequestTx1.logs[0].args._id, "match data request id").to.be.bignumber.equal(requestId)
+      expect(postDataRequestTx1.logs[0].args.id, "match data request id").to.be.bignumber.equal(requestId)
       // Check `PostedRequest` events
       expectEvent(
         postDataRequestTx2,
         "PostedRequest",
         {
-          _id: requestId.add(new BN(1)),
+          id: requestId.add(new BN(1)),
         })
       expect(
-        postDataRequestTx2.logs[0].args._id,
+        postDataRequestTx2.logs[0].args.id,
         "match data request id"
       ).to.be.bignumber.equal(requestId.add(new BN(1)))
     })
@@ -121,7 +120,7 @@ contract("WitnetRequestBoard", ([
             gasPrice: 1,
           }
         ),
-        "Result reward should cover gas expenses. Check the estimateGasCost method."
+        "WitnetRequestBoard: reward too low."
       )
     })
     it("fails if creator is not covering DR result report gas cost", async () => {
@@ -135,7 +134,7 @@ contract("WitnetRequestBoard", ([
             gasPrice: 1,
           }
         ),
-        "Result reward should cover gas expenses. Check the estimateGasCost"
+        "WitnetRequestBoard: reward too low."
       )
     })
   })
@@ -208,14 +207,14 @@ contract("WitnetRequestBoard", ([
     })
     it("fails if anyone upgrades DR with new gas price that decreases reward below gas limit", async () => {
       // Report result reward < ESTIMATED_REPORT_RESULT_GAS * newGasPrice
-      const newGasPrice = ether("1")
+      const newGasPrice = ether("0.01")
       await expectRevert(
         this.WitnetRequestBoard.upgradeDataRequest(requestId, {
           from: requestor,
           value: ether("0"),
           gasPrice: newGasPrice,
         }),
-        "Result reward should cover gas expenses. Check the estimateGasCost"
+        "WitnetRequestBoard: reward too low."
       )
     })
     it("fails if result is already reported", async () => {
@@ -230,7 +229,7 @@ contract("WitnetRequestBoard", ([
           value: ether("1"),
           gasPrice: 3,
         }),
-        "Result already included"
+        "already solved"
       )
     })
   })
@@ -262,10 +261,10 @@ contract("WitnetRequestBoard", ([
         reportResultTx,
         "PostedResult",
         {
-          _id: requestId,
+          id: requestId,
         },
       )
-      expect(reportResultTx.logs[0].args._id, "match data request id").to.be.bignumber.equal(requestId)
+      expect(reportResultTx.logs[0].args.id, "match data request id").to.be.bignumber.equal(requestId)
 
       // Check balances (contract decreased and claimer increased)
       const contractFinalBalance = await contractBalanceTracker.get()
@@ -290,7 +289,7 @@ contract("WitnetRequestBoard", ([
           from: other,
           gasPrice: 1,
         }),
-        "Sender not authorized"
+        "unauthorized reporter"
       )
     })
     it("fails if drTxHash is zero", async () => {
@@ -299,7 +298,7 @@ contract("WitnetRequestBoard", ([
           requestId, 0, resultHex,
           { from: owner, gasPrice: 1 }
         ),
-        "Data request transaction cannot be zero"
+        "tx hash cannot be zero"
       )
     })
     it("fails if result was already reported", async () => {
@@ -315,7 +314,7 @@ contract("WitnetRequestBoard", ([
           from: committeeMember,
           gasPrice: 1,
         }),
-        "Result already included"
+        "already solved"
       )
     })
     it("fails if data request has not been posted", async () => {
@@ -324,7 +323,7 @@ contract("WitnetRequestBoard", ([
           requestId.add(new BN(1)), drTxHash, resultHex,
           { from: owner, gasPrice: 1 }
         ),
-        "Id not found"
+        "not yet posted"
       )
     })
   })
@@ -360,13 +359,13 @@ contract("WitnetRequestBoard", ([
           from: other,
           gasPrice: 1,
         }),
-        "The dr has been manipulated and the bytecode has changed"
+        "manipulated request"
       )
     })
     it("should revert reading data for non-existent Ids", async () => {
-      await expectRevert(this.WitnetRequestBoard.readDataRequest.call(200), "Id not found")
-      await expectRevert(this.WitnetRequestBoard.readDrTxHash.call(200), "Id not found")
-      await expectRevert(this.WitnetRequestBoard.readResult.call(200), "Id not found")
+      await expectRevert(this.WitnetRequestBoard.readDataRequest.call(200), "not yet posted")
+      await expectRevert(this.WitnetRequestBoard.readDrTxHash.call(200), "not yet posted")
+      await expectRevert(this.WitnetRequestBoard.readResult.call(200), "not yet posted")
     })
   })
 
@@ -394,14 +393,84 @@ contract("WitnetRequestBoard", ([
   describe("estimate gas cost", async () => {
     it("anyone can estime a data request gas cost", async () => {
       // Gas price = 1
-      const maxResRe = new BN(await this.WitnetRequestBoard.ESTIMATED_REPORT_RESULT_GAS.call())
+      const maxResRe = new BN(102496)
       const reward = await this.WitnetRequestBoard.estimateGasCost.call(1)
-
       expect(
         reward.eq(maxResRe),
         `The estimated maximum gas cost for result reward should be ${maxResRe.toString()}`
       ).to.equal(true)
     }
     )
+  })
+
+  describe("destroy data request", async () => {
+    let requestId
+    it("fails if trying to destroy data request from non requestor address", async () => {
+      const tx = await this.WitnetRequestBoard.postDataRequest(this.Request.address, {
+        from: requestor,
+        value: ether("0.1"),
+      })
+      requestId = tx.logs[0].args[0]
+      await expectRevert(
+        this.WitnetRequestBoard.destroyResult(requestId, { from: other }),
+        "only actual requestor"
+      )
+    })
+    it("unsolved data request cannot be destroyed", async () => {
+      const tx = await this.WitnetRequestBoard.postDataRequest(this.Request.address, {
+        from: requestor,
+        value: ether("0.1"),
+      })
+      requestId = tx.logs[0].args[0]
+      await expectRevert(
+        this.WitnetRequestBoard.destroyResult(requestId, { from: requestor }),
+        "not yet solved"
+      )
+    })
+  })
+
+  describe("interfaces", async () => {
+    describe("Upgradable:", async () => {
+      it("initialization fails if called from non owner address", async () => {
+        await expectRevert(
+          this.WitnetRequestBoard.initialize(
+            web3.eth.abi.encodeParameter("address[]", [other]),
+            { from: other }
+          ),
+          "only owner"
+        )
+      })
+      it("cannot initialize same instance more than once", async () => {
+        await expectRevert(
+          this.WitnetRequestBoard.initialize(
+            web3.eth.abi.encodeParameter("address[]", [other]),
+            { from: owner }
+          ),
+          "already initialized"
+        )
+      })
+    })
+
+    describe("Destructible:", async () => {
+      it("fails if trying to destroy from non owner address", async () => {
+        await expectRevert(
+          this.WitnetRequestBoard.destroy({ from: other }),
+          "only owner"
+        )
+      })
+      it("instance gets actually destroyed", async () => {
+        await this.WitnetRequestBoard.destroy({ from: owner })
+        await expectRevert(
+          this.WitnetRequestBoard.requestsCount(),
+          "Out of Gas?"
+        )
+      })
+      it("fails if trying to destroy unposted DR", async () => {
+        await expectRevert(
+          this.WitnetRequestBoard.destroyResult(200),
+          "only actual requestor"
+        )
+      })
+    })
   })
 })

@@ -1,16 +1,21 @@
-const WitnetRequestBoardProxy = artifacts.require("WitnetRequestBoardProxy")
 const addresses = require("./addresses.json")
+const WitnetProxy = artifacts.require("WitnetProxy")
+const WitnetRequestBoard = artifacts.require("WitnetRequestBoard")
 
-module.exports = function (deployer, network, accounts) {
+module.exports = async function (deployer, network, accounts) {
   network = network.split("-")[0]
-  console.log(network)
-  if (network in addresses && addresses[network].WitnetRequestBoardProxy) {
-    WitnetRequestBoardProxy.address = addresses[network].WitnetRequestBoardProxy
+  if (network in addresses && addresses[network].WitnetProxy) {
+    WitnetProxy.address = addresses[network].WitnetProxy
   } else {
-    const WitnetRequestBoard = artifacts.require("WitnetRequestBoard")
-    console.log(`> Migrating WitnetRequestBoard and WitnetRequestBoardProxy into ${network} network`)
-    deployer.deploy(WitnetRequestBoard, [accounts[0]]).then(function () {
-      return deployer.deploy(WitnetRequestBoardProxy, WitnetRequestBoard.address)
-    })
+    console.log(`> Migrating WitnetRequestBoard and WitnetProxy into ${network} network...`)
+    await deployer.deploy(WitnetRequestBoard)
+    const proxy = await deployer.deploy(WitnetProxy)
+    await proxy.upgrade(
+      WitnetRequestBoard.address,
+      web3.eth.abi.encodeParameter(
+        "address[]",
+        [accounts[0]]
+      )
+    )
   }
 }

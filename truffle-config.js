@@ -23,6 +23,11 @@ module.exports = {
       host: "localhost",
       port: 8542,
     },
+    conflux: {
+      host: "localhost",
+      port: 3000,
+      network_id: 1,
+    },
   },
   mocha: {
     reporter: "eth-gas-reporter",
@@ -38,7 +43,7 @@ module.exports = {
   },
   compilers: {
     solc: {
-      version: "0.8.4",
+      version: "0.8.5",
       settings: {
         optimizer: {
           enabled: true,

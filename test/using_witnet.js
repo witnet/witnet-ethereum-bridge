@@ -1,7 +1,13 @@
+const {
+  // expectEvent,
+  expectRevert,
+} = require("@openzeppelin/test-helpers")
+// const { expect } = require("chai")
+
 const WRB = artifacts.require("WitnetRequestBoard")
-const WRBProxy = artifacts.require("WitnetRequestBoardProxy")
+const WRBProxy = artifacts.require("WitnetProxy")
 const UsingWitnetTestHelper = artifacts.require("UsingWitnetTestHelper")
-const Request = artifacts.require("Request")
+const Request = artifacts.require("WitnetRequest")
 const Witnet = artifacts.require("Witnet")
 
 const truffleAssert = require("truffle-assertions")
@@ -16,15 +22,31 @@ contract("UsingWitnet", accounts => {
 
     const reward = web3.utils.toWei("1", "ether")
 
-    let witnet, clientContract, wrb, wrbProxy, request, requestId, result
+    let witnet, clientContract, wrb, proxy, request, requestId, result
     let lastAccount0Balance
+
+    const ownerAccount = accounts[0]
+    const reporterAccount = accounts[1]
 
     before(async () => {
       witnet = await Witnet.deployed()
-      wrb = await WRB.new([accounts[0]])
-      wrbProxy = await WRBProxy.new(wrb.address)
+      if (!proxy) {
+        // create one and only proxy contract:
+        proxy = await WRBProxy.new({ from: ownerAccount })
+        // let 'wrb' artifact always point to proxy address
+        wrb = await WRB.at(proxy.address)
+      }
+      // notwithstanding, upgrade proxy on each iteration...
+      await proxy.upgrade(
+        // ...to new implementation instance:
+        (await WRB.new({ from: ownerAccount })).address,
+        // ...resetting reporters whitelist:
+        web3.eth.abi.encodeParameter("address[]", [reporterAccount]),
+        // ...from owner account.
+        { from: ownerAccount }
+      )
       await UsingWitnetTestHelper.link(Witnet, witnet.address)
-      clientContract = await UsingWitnetTestHelper.new(wrbProxy.address)
+      clientContract = await UsingWitnetTestHelper.new(proxy.address)
       lastAccount0Balance = await web3.eth.getBalance(accounts[0])
     })
 
@@ -42,9 +64,7 @@ contract("UsingWitnet", accounts => {
           value: reward,
         }
       ))
-      const expectedId = "0x0000000000000000000000000000000000000000000000000000000000000001"
-
-      assert.equal(requestId.toString(16), expectedId)
+      assert.equal(requestId, 1)
     })
 
     it("should have posted and read the same bytes", async () => {
@@ -54,7 +74,7 @@ contract("UsingWitnet", accounts => {
 
     it("should have set the correct rewards", async () => {
       // Retrieve rewards
-      const drInfo = await wrb.requests(requestId)
+      const drInfo = await wrb.readDr(requestId)
       const drReward = drInfo.reward.toString()
       assert.equal(drReward, reward)
     })
@@ -84,7 +104,7 @@ contract("UsingWitnet", accounts => {
 
     it("should have upgraded the rewards correctly", async () => {
       // Retrieve reward
-      const drInfo = await wrb.requests(requestId)
+      const drInfo = await wrb.readDr(requestId)
       const drReward = drInfo.reward.toString()
       assert.equal(drReward, reward * 2)
     })
@@ -105,12 +125,19 @@ contract("UsingWitnet", accounts => {
       assert.equal(wrbBalance, reward * 2)
     })
 
+    it("should fail if posting result from unauthorized reporter", async () => {
+      await expectRevert(
+        wrb.reportResult(requestId, drTxHash, resultHex, { from: ownerAccount }),
+        "unauthorized reporter"
+      )
+    })
+
     it("should post the result of the request into the WRB", async () => {
       await returnData(wrb.reportResult(requestId, drTxHash, resultHex, {
-        from: accounts[0],
+        from: reporterAccount,
       }))
-      const requestInfo = await wrb.requests(requestId)
-      assert.equal(requestInfo.result, resultHex)
+      const result = await wrb.readResult(requestId)
+      assert.equal(result, resultHex)
     })
 
     it("should check if the request is resolved", async () => {
@@ -121,7 +148,7 @@ contract("UsingWitnet", accounts => {
       await clientContract._witnetReadResult(requestId, { from: accounts[0] })
       result = await clientContract.result()
       assert.equal(result.success, true)
-      assert.equal(result.cborValue.buffer.data, resultHex)
+      assert.equal(result.value.buffer.data, resultHex)
     })
 
     it("should decode result successfully", async () => {
@@ -137,11 +164,27 @@ contract("UsingWitnet", accounts => {
 
     const reward = web3.utils.toWei("1", "ether")
 
-    let witnet, clientContract, wrb, request, requestId, result
+    const ownerAccount = accounts[0]
+    const reporterAccount = accounts[1]
+
+    let witnet, clientContract, wrb, proxy, request, requestId, result
 
     before(async () => {
       witnet = await Witnet.deployed()
-      wrb = await WRB.new([accounts[0]])
+      if (!proxy) {
+        // create one and only proxy contract:
+        proxy = await WRBProxy.new()
+        // let 'wrb' artifact always point to proxy address
+        wrb = await WRB.at(proxy.address)
+        // initialize 'wrb' artifact,
+        //   setting 'ownerAccount' as owner
+        //   and 'reporterAccount' as authorized reporter:
+        await proxy.upgrade(
+          (await WRB.new()).address,
+          web3.eth.abi.encodeParameter("address[]", [reporterAccount]),
+          { from: ownerAccount }
+        )
+      }
       await UsingWitnetTestHelper.link(Witnet, witnet.address)
       clientContract = await UsingWitnetTestHelper.new(wrb.address)
     })
@@ -156,29 +199,36 @@ contract("UsingWitnet", accounts => {
       requestId = await returnData(clientContract._witnetPostRequest(
         request.address,
         {
-          from: accounts[1],
+          from: accounts[0],
           value: reward,
         }
       ))
-      assert.equal(requestId.toString(16), "0x0000000000000000000000000000000000000000000000000000000000000001")
+      assert.equal(requestId, 1)
     })
 
     it("should check the request is not yet resolved", async () => {
       assert.equal(await clientContract._witnetCheckRequestResolved(requestId), false)
     })
 
+    it("should fail if posting result from unauthorized reporter", async () => {
+      await expectRevert(
+        wrb.reportResult(requestId, drTxHash, resultHex, { from: ownerAccount }),
+        "unauthorized reporter"
+      )
+    })
+
     it("should report the result in the WRB", async () => {
       await returnData(wrb.reportResult(requestId, drTxHash, resultHex, {
-        from: accounts[0],
+        from: reporterAccount,
       }))
-      const requestinfo = await wrb.requests(requestId)
-      assert.equal(requestinfo.result, resultHex)
+      const result = await wrb.readResult(requestId)
+      assert.equal(result, resultHex)
     })
 
     it("should pull the result from the WRB back to the client contract", async () => {
       await clientContract._witnetReadResult(requestId, { from: accounts[1] })
       result = await clientContract.result()
-      assert.equal(result.cborValue.buffer.data, resultHex)
+      assert.equal(result.value.buffer.data, resultHex)
     })
 
     it("should detect the result is false", async () => {
@@ -211,7 +261,20 @@ function waitForHash (tx) {
 async function returnData (tx) {
   const txHash = await waitForHash(tx)
   const txReceipt = await web3.eth.getTransactionReceipt(txHash)
-  if (txReceipt.logs[0]) {
-    return txReceipt.logs[0].data
+  if (txReceipt.logs && txReceipt.logs.length > 0) {
+    const decoded = web3.eth.abi.decodeLog(
+      [
+        {
+          type: "uint256",
+          name: "id",
+        }, {
+          type: "address",
+          name: "from",
+        },
+      ],
+      txReceipt.logs[0].data,
+      txReceipt.logs[0].topics
+    )
+    return decoded.id
   }
 }

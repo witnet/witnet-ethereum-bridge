@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: MIT
 
-pragma solidity 0.8.4;
+pragma solidity 0.8.5;
 
 import "truffle/Assert.sol";
-import "../contracts/CBOR.sol";
+import "../contracts/libs/CBOR.sol";
 
 
 contract TestCBOR {
-  using CBOR for CBOR.Value;
+  using CBOR for WitnetTypes.CBOR;
 
   event Log(string _topic, uint256 _value);
   event Log(string _topic, bytes _value);
@@ -18,12 +18,12 @@ contract TestCBOR {
   //   Assert.equal(
   //     decodedFalse,
   //     false,
-  //     "CBOR-encoded false value should be decoded into a CBOR.Value containing the correct bool false value"
+  //     "CBOR-encoded false value should be decoded into a WitnetTypes.CBOR containing the correct bool false value"
   //   );
   //   Assert.equal(
   //     decodedTrue,
   //     true,
-  //     "CBOR-encoded true value should be decoded into a CBOR.Value containing the correct bool true value"
+  //     "CBOR-encoded true value should be decoded into a WitnetTypes.CBOR containing the correct bool true value"
   //   );
   // }
 
@@ -39,8 +39,8 @@ contract TestCBOR {
   // }
 
   // function testUint64DecodeDiscriminant() external {
-  //   CBOR.Value memory decoded = CBOR.valueFromBytes(hex"1b0020000000000000");
-  //   Assert.equal(uint(decoded.majorType), 0, "CBOR-encoded Uint64 value should be decoded into a CBOR.Value with major type 0");
+  //   WitnetTypes.CBOR memory decoded = CBOR.valueFromBytes(hex"1b0020000000000000");
+  //   Assert.equal(uint(decoded.majorType), 0, "CBOR-encoded Uint64 value should be decoded into a WitnetTypes.CBOR with major type 0");
   // }
 
   // function testUint64DecodeValue() external {
@@ -48,13 +48,13 @@ contract TestCBOR {
   //   Assert.equal(
   //     uint(decoded),
   //     9007199254740992,
-  //     "CBOR-encoded Uint64 value should be decoded into a CBOR.Value containing the correct Uint64 value"
+  //     "CBOR-encoded Uint64 value should be decoded into a WitnetTypes.CBOR containing the correct Uint64 value"
   //   );
   // }
 
   // function testInt128DecodeDiscriminant() external {
-  //   CBOR.Value memory decoded = CBOR.valueFromBytes(hex"3bfffffffffffffffe");
-  //   Assert.equal(uint(decoded.majorType), 1, "CBOR-encoded Int128 value should be decoded into a CBOR.Value with major type 1");
+  //   WitnetTypes.CBOR memory decoded = CBOR.valueFromBytes(hex"3bfffffffffffffffe");
+  //   Assert.equal(uint(decoded.majorType), 1, "CBOR-encoded Int128 value should be decoded into a WitnetTypes.CBOR with major type 1");
   // }
 
   // function testInt128DecodeValue() external {
@@ -62,29 +62,29 @@ contract TestCBOR {
   //   Assert.equal(
   //     int(decoded),
   //     -18446744073709551615,
-  //     "CBOR-encoded Int128 value should be decoded into a CBOR.Value containing the correct Uint64 value"
+  //     "CBOR-encoded Int128 value should be decoded into a WitnetTypes.CBOR containing the correct Uint64 value"
   //   );
   // }
 
   // function testInt128DecodeZeroValue() external {
   //   int128 decoded = CBOR.valueFromBytes(hex"00").decodeInt128();
-  //   Assert.equal(int(decoded), 0, "CBOR-encoded Int128 value should be decoded into a CBOR.Value containing the correct Uint64 value");
+  //   Assert.equal(int(decoded), 0, "CBOR-encoded Int128 value should be decoded into a WitnetTypes.CBOR containing the correct Uint64 value");
   // }
 
   // function testBytes0DecodeDiscriminant() external {
-  //   CBOR.Value memory decoded = CBOR.valueFromBytes(hex"40");
-  //   Assert.equal(uint(decoded.majorType), 2, "Empty CBOR-encoded Bytes value should be decoded into a CBOR.Value with major type 2");
+  //   WitnetTypes.CBOR memory decoded = CBOR.valueFromBytes(hex"40");
+  //   Assert.equal(uint(decoded.majorType), 2, "Empty CBOR-encoded Bytes value should be decoded into a WitnetTypes.CBOR with major type 2");
   // }
 
   function testBytes0DecodeValue() external {
     bytes memory encoded = hex"40";
     bytes memory decoded = CBOR.valueFromBytes(encoded).decodeBytes();
-    Assert.equal(decoded.length, 0, "Empty CBOR-encoded Bytes value should be decoded into an empty CBOR.Value containing an empty bytes value");
+    Assert.equal(decoded.length, 0, "Empty CBOR-encoded Bytes value should be decoded into an empty WitnetTypes.CBOR containing an empty bytes value");
   }
 
   // function testBytes4BDecodeDiscriminant() external {
-  //   CBOR.Value memory decoded = CBOR.valueFromBytes(hex"4401020304");
-  //   Assert.equal(uint(decoded.majorType), 2, "CBOR-encoded Bytes value should be decoded into a CBOR.Value with major type 2");
+  //   WitnetTypes.CBOR memory decoded = CBOR.valueFromBytes(hex"4401020304");
+  //   Assert.equal(uint(decoded.majorType), 2, "CBOR-encoded Bytes value should be decoded into a WitnetTypes.CBOR with major type 2");
   // }
 
   // function testBytes4DecodeValue() external {
@@ -100,28 +100,28 @@ contract TestCBOR {
   //   Assert.equal(
   //     decoded[0],
   //     expected[0],
-  //     "CBOR-encoded Bytes value should be decoded into a CBOR.Value containing the correct Bytes value (error at item 0)"
+  //     "CBOR-encoded Bytes value should be decoded into a WitnetTypes.CBOR containing the correct Bytes value (error at item 0)"
   //   );
   //   Assert.equal(
   //     decoded[1],
   //     expected[1],
-  //     "CBOR-encoded Bytes value should be decoded into a CBOR.Value containing the correct Bytes value (error at item 1)"
+  //     "CBOR-encoded Bytes value should be decoded into a WitnetTypes.CBOR containing the correct Bytes value (error at item 1)"
   //   );
   //   Assert.equal(
   //     decoded[2],
   //     expected[2],
-  //     "CBOR-encoded Bytes value should be decoded into a CBOR.Value containing the correct Bytes value (error at item 2)"
+  //     "CBOR-encoded Bytes value should be decoded into a WitnetTypes.CBOR containing the correct Bytes value (error at item 2)"
   //   );
   //   Assert.equal(
   //     decoded[3],
   //     expected[3],
-  //     "CBOR-encoded Bytes value should be decoded into a CBOR.Value containing the correct Bytes value (error at item 3)"
+  //     "CBOR-encoded Bytes value should be decoded into a WitnetTypes.CBOR containing the correct Bytes value (error at item 3)"
   //   );
   // }
 
   // function testStringDecodeDiscriminant() external {
-  //   CBOR.Value memory decoded = CBOR.valueFromBytes(hex"6449455446");
-  //   Assert.equal(uint(decoded.majorType), 3, "CBOR-encoded String value should be decoded into a CBOR.Value with major type 3");
+  //   WitnetTypes.CBOR memory decoded = CBOR.valueFromBytes(hex"6449455446");
+  //   Assert.equal(uint(decoded.majorType), 3, "CBOR-encoded String value should be decoded into a WitnetTypes.CBOR with major type 3");
   // }
 
   // function testStringDecodeValue() external {
@@ -129,11 +129,11 @@ contract TestCBOR {
   //   string memory decoded = CBOR.valueFromBytes(encoded).decodeString();
   //   string memory expected = "IETF";
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded String value should be decoded into a CBOR.Value containing the correct String value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded String value should be decoded into a WitnetTypes.CBOR containing the correct String value");
   // }
 
   // function testFloatDecodeDiscriminant() external {
-  //   CBOR.Value memory decoded = CBOR.valueFromBytes(hex"f90001");
+  //   WitnetTypes.CBOR memory decoded = CBOR.valueFromBytes(hex"f90001");
   //   Assert.equal(uint(decoded.majorType), 7, "CBOR-encoded Float value should be decoded into a CBOR with major type 7");
   // }
 
@@ -142,7 +142,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 0;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeLargestSubnormal() external {
@@ -150,7 +150,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 0;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeSmallestPositiveNormal() external {
@@ -158,7 +158,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 0;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeLargestNormal() external {
@@ -166,7 +166,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 655040000;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeLargestLessThanOne() external {
@@ -174,7 +174,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 9995;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeOne() external {
@@ -182,7 +182,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 10000;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeSmallestGreaterThanOne() external {
@@ -190,7 +190,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 10009;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeOneThird() external {
@@ -198,7 +198,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 3332;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeMinusTwo() external {
@@ -206,7 +206,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = -20000;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeZero() external {
@@ -214,7 +214,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 0;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testFloatDecodeMinusZero() external {
@@ -222,7 +222,7 @@ contract TestCBOR {
   //   int32 decoded = CBOR.valueFromBytes(encoded).decodeFixed16();
   //   int32 expected = 0;
 
-  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a CBOR.Value containing the correct Float value");
+  //   Assert.equal(decoded, expected, "CBOR-encoded Float value should be decoded into a WitnetTypes.CBOR containing the correct Float value");
   // }
 
   // function testUint64ArrayDecode() external {
@@ -238,22 +238,22 @@ contract TestCBOR {
   //   Assert.equal(
   //     uint(decoded[0]),
   //     uint(expected[0]),
-  //     "CBOR-encoded Array of Uint64 values should be decoded into a CBOR.Value containing the correct Uint64 values (error at item 0)"
+  //     "CBOR-encoded Array of Uint64 values should be decoded into a WitnetTypes.CBOR containing the correct Uint64 values (error at item 0)"
   //   );
   //   Assert.equal(
   //     uint(decoded[1]),
   //     uint(expected[1]),
-  //     "CBOR-encoded Array of Uint64 values should be decoded into a CBOR.Value containing the correct Uint64 values (error at item 1)"
+  //     "CBOR-encoded Array of Uint64 values should be decoded into a WitnetTypes.CBOR containing the correct Uint64 values (error at item 1)"
   //   );
   //   Assert.equal(
   //     uint(decoded[2]),
   //     uint(expected[2]),
-  //     "CBOR-encoded Array of Uint64 values should be decoded into a CBOR.Value containing the correct Uint64 values (error at item 2)"
+  //     "CBOR-encoded Array of Uint64 values should be decoded into a WitnetTypes.CBOR containing the correct Uint64 values (error at item 2)"
   //   );
   //   Assert.equal(
   //     uint(decoded[3]),
   //     uint(expected[3]),
-  //     "CBOR-encoded Array of Uint64 values should be decoded into a CBOR.Value containing the correct Uint64 values (error at item 3)"
+  //     "CBOR-encoded Array of Uint64 values should be decoded into a WitnetTypes.CBOR containing the correct Uint64 values (error at item 3)"
   //   );
   // }
 
@@ -270,22 +270,22 @@ contract TestCBOR {
   //   Assert.equal(
   //     decoded[0],
   //     expected[0],
-  //     "CBOR-encoded Array of Int128 values should be decoded into a CBOR.Value containing the correct Int128 values (error at item 0)"
+  //     "CBOR-encoded Array of Int128 values should be decoded into a WitnetTypes.CBOR containing the correct Int128 values (error at item 0)"
   //   );
   //   Assert.equal(
   //     decoded[1],
   //     expected[1],
-  //     "CBOR-encoded Array of Int128 values should be decoded into a CBOR.Value containing the correct Int128 values (error at item 1)"
+  //     "CBOR-encoded Array of Int128 values should be decoded into a WitnetTypes.CBOR containing the correct Int128 values (error at item 1)"
   //   );
   //   Assert.equal(
   //     decoded[2],
   //     expected[2],
-  //     "CBOR-encoded Array of Int128 values should be decoded into a CBOR.Value containing the correct Int128 values (error at item 2)"
+  //     "CBOR-encoded Array of Int128 values should be decoded into a WitnetTypes.CBOR containing the correct Int128 values (error at item 2)"
   //   );
   //   Assert.equal(
   //     decoded[3],
   //     expected[3],
-  //     "CBOR-encoded Array of Int128 values should be decoded into a CBOR.Value containing the correct Int128 values (error at item 3)"
+  //     "CBOR-encoded Array of Int128 values should be decoded into a WitnetTypes.CBOR containing the correct Int128 values (error at item 3)"
   //   );
   // }
 
@@ -302,22 +302,22 @@ contract TestCBOR {
   //   Assert.equal(
   //     decoded[0],
   //     expected[0],
-  //     "CBOR-encoded Array of Fixed16 values should be decoded into a CBOR.Value containing the correct Int128 values (error at item 0)"
+  //     "CBOR-encoded Array of Fixed16 values should be decoded into a WitnetTypes.CBOR containing the correct Int128 values (error at item 0)"
   //   );
   //   Assert.equal(
   //     decoded[1],
   //     expected[1],
-  //     "CBOR-encoded Array of Fixed16 values should be decoded into a CBOR.Value containing the correct Int128 values (error at item 1)"
+  //     "CBOR-encoded Array of Fixed16 values should be decoded into a WitnetTypes.CBOR containing the correct Int128 values (error at item 1)"
   //   );
   //   Assert.equal(
   //     decoded[2],
   //     expected[2],
-  //     "CBOR-encoded Array of Fixed16 values should be decoded into a CBOR.Value containing the correct Int128 values (error at item 2)"
+  //     "CBOR-encoded Array of Fixed16 values should be decoded into a WitnetTypes.CBOR containing the correct Int128 values (error at item 2)"
   //   );
   //   Assert.equal(
   //     decoded[3],
   //     expected[3],
-  //     "CBOR-encoded Array of Fixed16 values should be decoded into a CBOR.Value containing the correct Int128 values (error at item 3)"
+  //     "CBOR-encoded Array of Fixed16 values should be decoded into a WitnetTypes.CBOR containing the correct Int128 values (error at item 3)"
   //   );
   // }
 
@@ -334,22 +334,22 @@ contract TestCBOR {
   //   Assert.equal(
   //     decoded[0],
   //     expected[0],
-  //     "CBOR-encoded Array of String values should be decoded into a CBOR.Value containing the correct String values (error at item 0)"
+  //     "CBOR-encoded Array of String values should be decoded into a WitnetTypes.CBOR containing the correct String values (error at item 0)"
   //   );
   //   Assert.equal(
   //     decoded[1],
   //     expected[1],
-  //     "CBOR-encoded Array of String values should be decodrm -rf noed into a CBOR.Value containing the correct String values (error at item 1)"
+  //     "CBOR-encoded Array of String values should be decodrm -rf noed into a WitnetTypes.CBOR containing the correct String values (error at item 1)"
   //   );
   //   Assert.equal(
   //     decoded[2],
   //     expected[2],
-  //     "CBOR-encoded Array of String values should be decoded into a CBOR.Value containing the correct String values (error at item 2)"
+  //     "CBOR-encoded Array of String values should be decoded into a WitnetTypes.CBOR containing the correct String values (error at item 2)"
   //   );
   //   Assert.equal(
   //     decoded[3],
   //     expected[3],
-  //     "CBOR-encoded Array of String values should be decoded into a CBOR.Value containing the correct String values (error at item 3)"
+  //     "CBOR-encoded Array of String values should be decoded into a WitnetTypes.CBOR containing the correct String values (error at item 3)"
   //   );
   // }
 }
